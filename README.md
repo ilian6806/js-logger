@@ -1,2 +1,2 @@
 # js-logger
-Dev logger
+Universal dev logger
