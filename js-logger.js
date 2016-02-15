@@ -66,7 +66,11 @@ window.log = function (message, separator, title) {
     } else if (message instanceof Array) {
         log = JSON.stringify(message);
     } else if (message instanceof Object) {
-        log = JSON.stringify(message, JSON.replacer, JSON.indent);
+        if (message.constructor == Function) {
+            log = message;
+        } else {
+            log = JSON.stringify(message, JSON.replacer, JSON.indent);
+        }
     } else {
         log = message;
     }
