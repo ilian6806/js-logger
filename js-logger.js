@@ -30,7 +30,6 @@ console.traverseHTMLElement = function (element) {
                 if (length) {
                     if (child.nodeValue.indexOf('\n') > -1) {
                         console.log(child.nodeValue.replace(/\n/g, '\n' + spacing + tab));
-
                     } else {
                         console.log(spacing + tab + child.nodeValue);
                     }
