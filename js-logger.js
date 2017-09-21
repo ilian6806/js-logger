@@ -1,52 +1,55 @@
 /**
  * Log formated html element
  */
-console.traverseHTMLElement = function (element) {
-    function traverse(element, spacing) {
+console.traverseHTMLElement = function (element, spacing) {
 
-        var nodeName = element.nodeName.toLowerCase();
-        var startTag = element.outerHTML.slice(0, element.outerHTML.indexOf('>') + 1)
-        var endTag = '</' + nodeName + '>';
-        var tab = '   ';
+    if (!element) {
+        throw '[traverseHTMLElement]: No HTML element provided as first argument';
+    }
 
-        // Empty element or element with one empty text node
-        if (!element.childNodes.length || 
-           (element.childNodes.length == 1 &&
-            element.childNodes[0].nodeType === 3 &&
-           !element.childNodes[0].nodeValue.trim().length)) {
-                console.log(spacing + startTag + endTag);
-                return;
+    spacing = spacing || '';
+
+    var nodeName = element.nodeName.toLowerCase();
+    var startTag = element.outerHTML.slice(0, element.outerHTML.indexOf('>') + 1)
+    var endTag = '</' + nodeName + '>';
+    var tab = '   ';
+
+    // Empty element or element with one empty text node
+    if (!element.childNodes.length ||
+       (element.childNodes.length === 1 &&
+        element.childNodes[0].nodeType === 3 &&
+       !element.childNodes[0].nodeValue.trim().length)) {
+            console.log(spacing + startTag + endTag);
+            return;
+    }
+
+    console.log(spacing + startTag);
+
+    for (var i = 0, len = element.childNodes.length; i < len; i += 1) {
+        var child = element.childNodes[i];
+        if (child.nodeType === 1) { // Element
+            console.traverseHTMLElement(child, spacing + tab);
         }
-
-        console.log(spacing + startTag);
-
-        for (var i = 0, len = element.childNodes.length; i < len; i += 1) {
-            var child = element.childNodes[i];
-            if (child.nodeType === 1) { // Element
-                traverse(child, spacing + tab);
-            }
-            if (child.nodeType === 3) { // Text
-                var length = child.nodeValue.trim();
-                if (length) {
-                    if (child.nodeValue.indexOf('\n') > -1) {
-                        console.log(child.nodeValue.replace(/\n/g, '\n' + spacing + tab));
-                    } else {
-                        console.log(spacing + tab + child.nodeValue);
-                    }
+        if (child.nodeType === 3) { // Text
+            var length = child.nodeValue.trim();
+            if (length) {
+                if (child.nodeValue.indexOf('\n') > -1) {
+                    console.log(child.nodeValue.replace(/\n/g, '\n' + spacing + tab));
+                } else {
+                    console.log(spacing + tab + child.nodeValue);
                 }
             }
-            if (child.nodeType === 8) { // Comment
-                console.log(spacing + tab + '<!-- ' +child.nodeValue + ' -->');
-            }
         }
-
-        console.log(spacing + endTag);
+        if (child.nodeType === 8) { // Comment
+            console.log(spacing + tab + '<!-- ' + child.nodeValue + ' -->');
+        }
     }
-    traverse(element, '');
+
+    console.log(spacing + endTag);
 }
 
 /**
- * Custom log metohd for development 
+ * Custom log metohd for development
  */
 window.log = function (message, separator, title) {
 
@@ -55,7 +58,7 @@ window.log = function (message, separator, title) {
 
     if (separator) console.log(separator);
 
-    if (message instanceof jQuery) {
+    if (window.jQuery && message instanceof jQuery) {
         message = message[0];
     }
 
@@ -86,40 +89,48 @@ window.log = function (message, separator, title) {
 /**
  * Returns tag, id, class, html and all computed styles for html element
  */
-function cssInspect(selector) {
+window.cssInspect = function(selector) {
 
-    var dom = $(selector)[0];
+    var element = document.querySelector(selector);
+
+    if (!element) {
+        throw '[cssInspect]: Can\'t find element with selector "' + selector + '".';
+    }
+
     var style;
     var returns = {};
     var header = '--------CSS Inspect-----------\n';
-    header += 'TAG: ' + dom.tagName + '\n';
-    header += 'ID: ' + dom.id + '\n';
-    header += 'CLASS: ' + dom.className + '\n';
-    header += 'HTML:\n' + dom.outerHTML + '\n\n';
+    header += 'TAG: ' + element.tagName + '\n';
+    header += 'ID: ' + element.id + '\n';
+    header += 'CLASS: ' + element.className + '\n';
+    header += 'HTML:\n' + element.outerHTML + '\n\n';
     header += 'CSS:';
 
     log(header);
 
     if (window.getComputedStyle) {
-        var camelize = function (a, b) {
-            return b.toUpperCase();
-        };
-        style = window.getComputedStyle(dom, null);
+        style = window.getComputedStyle(element, null);
         for (var i = 0, l = style.length; i < l; i++) {
             var prop = style[i];
-            var camel = prop.replace(/\-([a-z])/g, camelize);
+            var camel = prop.replace(/\-([a-z])/g, function (a, b) {
+                return b.toUpperCase();
+            });
             var val = style.getPropertyValue(prop);
             returns[camel] = val;
         }
         log(returns);
         return;
     }
-    if (style = dom.currentStyle) {
-        for (var prop in style) {
-            returns[prop] = style[prop];
+
+    if (style == element.currentStyle) {
+        for (var pr in style) {
+            returns[pr] = style[pr];
         }
         log(returns);
         return;
     }
-    log($(dom).css());
+
+    if (window.jQuery) {
+        log($(element).css());
+    }
 }
