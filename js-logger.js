@@ -68,7 +68,7 @@ window.log = function (message, separator, title) {
     } else if (message instanceof Array) {
         log = JSON.stringify(message);
     } else if (message instanceof Object) {
-        if (message.constructor == Function) {
+        if (message.constructor === Function) {
             log = message;
         } else {
             log = JSON.stringify(message, JSON.replacer, JSON.indent);
@@ -122,9 +122,11 @@ window.cssInspect = function(selector) {
         return;
     }
 
-    if (style == element.currentStyle) {
+    if (style === element.currentStyle) {
         for (var pr in style) {
-            returns[pr] = style[pr];
+            if (style.hasOwnProperty(pr)) {
+                returns[pr] = style[pr];
+            }
         }
         log(returns);
         return;
